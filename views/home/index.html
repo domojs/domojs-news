@@ -1,0 +1,51 @@
+<style>
+    #articles > ul > li > p
+    {
+        visibility:visible;
+    }
+
+    #articles.list > ul > li > p
+    {
+        visibility:collapse;
+    }
+    
+    #articles.mini-mode .list-group-item-text
+    {
+        display:none;
+    }
+    
+    #articles .list-group-item h4
+    {
+        font-weight:bold;
+    }
+
+    #articles .list-group-item.disabled h4
+    {
+        font-weight:normal;
+    }
+</style>
+<script src="assets/news/js/sugar.js"></script>
+<div class="col-md-2 affix">
+    <a class="btn btn-success" data-toggle="modal" data-target="#addFeed">Add Content</a>
+     <ul id="tags" class="nav nav-pills nav-stacked">
+    </ul>
+</div>
+<ul id="articles" class="list-unstyled list-group col-md-10 col-md-offset-2" ng-keyup="feed.processKey($event)" ng-load tabindex="0" focus-on-load>
+</ul>
+<div class="modal" id="addFeed">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title">Add Feed</h4>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="url" />
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+              <button type="button" class="btn btn-primary" ng-click="$modal.close()">Add Feed</button>
+            </div>
+        </div>
+    </div>
+</div>
