@@ -1,3 +1,5 @@
+var debug=require('debug')('domojs:news');
+
 function trueAddFeed(db, url, userId, tags, articles, meta, callback) {
     var cmd = db.multi()
         .sadd('feeds', url)
@@ -26,7 +28,7 @@ function unread(db, key, from, count, callback) {
             return;
         }
         
-        console.log(key);
+        debug(key);
         db.sort(key, 'by', '*->date', 'limit', from, count, 'get', '*->date', 'get', '*->title', 'get', '*->summary', 'get', '#', 'get', '*->link', 'alpha', function (err, results) {
             if (err) {
                 console.error(err);
@@ -37,7 +39,7 @@ function unread(db, key, from, count, callback) {
             for (var i = 0; i < results.length;) {
                 items.push({ date: results[i++], title: results[i++], description: results[i++], id: results[i++], link: results[i++] });
             }
-            //console.log(items);
+            //debug(items);
             callback(200, items);
         });
     });
@@ -62,7 +64,7 @@ module.exports={
                     return;
                 }
                 require('../../rss.js')(feed, function (articles, meta) {
-                    console.log(articles);
+                    debug(articles);
                     if(isNaN(Number(articles)))
                         trueAddFeed(db, feed, user, tags, articles.slice(0, Math.min(articles.length, 10)), meta, callback);
                     else
@@ -75,10 +77,35 @@ module.exports={
         unread(db, user + ':tag:all:unread', from || 0, 50, callback);
     },
     unreadTab:function unreadTab(db, user, tag, from, callback) {
-        unread(db, user + ':tag:' + tag + ':unread', from || 0, 50, callback);
+        unread(db, user + ':tag:' + tag + ':unread', from || 0, 50, function(code, results){
+            if(code==200 && results.length==0)
+            {
+                db.exists(user+':subscriptions', function(err, exists){
+                    
+                    if(err)
+                        callback(500, err);
+                    else
+                        if(!exists)
+                        {
+                            db.multi()
+                                .sadd(user+':subscriptions', user+':tag:all')
+                                .sadd('notifications:subscribers', user+':tag:all')
+                                .exec(function(err){
+                                    if(err)
+                                        callback(500, err);
+                                    else
+                                        callback(code, results);
+                                })
+                        }
+                        else
+                            callback(code, results)
+                })
+            }
+            callback(code, results)
+        });
     },
     readArticle:function readArticle(db, user, id, callback) {
-        console.log(user);
+        debug(user);
         db.select(1, function(){
             db.smembers(user+':tags', function(err, tags){
                  if (err)
@@ -88,7 +115,7 @@ module.exports={
                 $.each(tags, function(i, tag){
                     cmd=cmd.srem(tag+':unread', id);
                 });
-                cmd.srem(user + ':unread', id).exec(function (err) {
+                cmd.exec(function (err) {
                     if (err)
                         callback(500, err);
                     else
@@ -107,8 +134,7 @@ module.exports={
                 if (err)
                     return callback(500, err);
                         
-                    var cmd = db.multi()
-                        .sadd(user + ':unread', id);
+                    var cmd = db.multi();
                        
                    $.each(tags, function(i, tag){
                        cmd=cmd.sadd(tag+':unread', id);

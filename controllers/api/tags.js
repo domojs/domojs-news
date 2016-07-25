@@ -5,6 +5,8 @@ exports.get=function get(db, user, callback) {
             if (err)
                 return callback(500, err);
             
+            if(tags==null || tags.length==0)
+                return callback([]);
             var cmd=db.multi();
             $.each(tags, function(i, tag){
                 cmd=cmd.scard(tag+':unread');

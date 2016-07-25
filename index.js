@@ -1,18 +1,20 @@
  $.on('message', function(message){
      var db=$.db.another();
-     if(!message.text)
+     if(typeof(message)=='string')
         message={text:message};
-     var id='notifications:'+Number(new Date());
+     var id=message.id || 'notifications:'+Number(new Date());
+     if(message.image)
+        message.summary = '<img src="'+message.image+'" />' + message.text;
      db.select(1, function(){
          db.smembers('notifications:subscribers', function (err, subscribers) {
             
         var cmd = db.multi()
                 .hmset(id, {
                 title: message.title,
-                summary: message.text,
+                summary: message.summary || message.text,
                 description: message.text ,
-                date: new Date(item.date).toISOString(),
-                pubDate: new Date(item.date).toISOString(),
+                date: message.date || new Date().toISOString(),
+                pubDate: message.date || new Date().toISOString(),
                 feed:'notifications:subscribers',
             });
 
