@@ -106,6 +106,7 @@ module.exports={
     },
     readArticle:function readArticle(db, user, id, callback) {
         debug(user);
+        debug(id);
         db.select(1, function(){
             db.smembers(user+':tags', function(err, tags){
                  if (err)
